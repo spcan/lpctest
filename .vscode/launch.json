@@ -1,0 +1,95 @@
+{
+    "version": "0.2.0",
+
+    "configurations": [
+        // Launch configuration
+        {
+            // Type and request type.
+            "type": "probe-rs-debug",
+            "request": "launch",
+
+            // Default pre launch task.
+            //"preLaunchTask": "${defaultBuildTask}",
+
+            // Display name.
+            "name": "Launch",
+
+            // Working directory.
+            "cwd": "${workspaceFolder}",
+
+            // Probe configuration.
+            "probe": "1fc9:0132",
+            "speed": 1000,
+            "connectUnderReset": false,
+            "chip": "LPC55S69JBD100",
+
+            // Runtime configuration.
+            "runtimeExecutable": "probe-rs-fix",
+            "runtimeArgs": [
+                "debug",
+            ],
+
+            // Flashing configuration.
+            "flashingConfig": {
+                "flashingEnabled": true,
+                "haltAfterReset": false
+            },
+
+            "rttEnabled": true,
+
+            // Core configuration.
+            "coreConfigs": [
+                {
+                    "coreIndex": 0,
+                    "programBinary": "${workspaceFolder}/target/thumbv8m.main-none-eabihf/release/lpctest",
+                    "chip": "LPC55S69JBD100",
+                    "svdFile": "${env:HOME}/.local/share/si4p/svd/nxp/lpc5500/LPC55S69.svd",
+                },
+            ],
+
+            // Log configuration.
+            "consoleLogLevel": "Info",
+        },
+
+        // Attach configuration.
+        {
+            // Type and request type.
+            "type": "probe-rs-debug",
+            "request": "attach",
+
+            // Display name.
+            "name": "Attach",
+
+            // Working directory.
+            "cwd": "${workspaceFolder}",
+
+            // Probe configuration.
+            "probe": "1fc9:0132",
+            "speed": 1000,
+            "chip": "LPC55S69JBD100",
+
+            // Flashing configuration.
+            "flashingConfig": {
+            },
+
+            // Runtime configuration.
+            "runtimeExecutable": "probe-rs-debugger",
+            "runtimeArgs": [
+                "debug",
+            ],
+
+            // Core configuration.
+            "coreConfigs": [
+                {
+                    "coreIndex": 0,
+                    "programBinary": "${workspaceFolder}/target/thumbv8m.main-none-eabihf/release/lpctest",
+                    "chip": "LPC55S69JBD100",
+                    "svdFile": "${env:HOME}/.local/share/si4p/svd/nxp/lpc5500/LPC55S69.svd",
+                },
+            ],
+
+            // Log configuration.
+            "consoleLogLevel": "Info",
+        }
+    ]
+}

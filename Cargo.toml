@@ -1,0 +1,52 @@
+[package]
+name = "lpctest"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+
+[profile.dev]
+panic = "abort"
+lto = true
+debug = true
+
+
+
+[profile.release]
+panic = "abort"
+lto = true
+debug = true
+codegen-units = 1
+#opt-level = "z"
+
+
+
+[dependencies]
+
+[dependencies.lpc5500]
+path = "../lpc5500"
+
+#[dependencies.micro]
+#git = "https://github.com/micro-rust/micro.git"
+#features = ["arm"]
+
+[dependencies.defmt]
+version = "0.3"
+
+[dependencies.defmt-rtt]
+version = "0.4"
+
+[dependencies.cortex-m]
+version = "*"
+features = ["critical-section-single-core"]
+
+[dependencies.cortex-m-rt]
+version = "0.6.15"
+
+[dependencies.lpc55-hal]
+version = "0.3.0"
+
+[dependencies.embedded-hal]
+version = "0.2.7"

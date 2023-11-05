@@ -1,0 +1,51 @@
+[default.probe]
+# USB VID and PID
+usb_vid = "1fc9"
+usb_pid = "0132"
+
+# Debug protocol
+protocol = "Swd"
+
+# Speed in khz
+speed = 1000
+
+
+
+[default.flashing]
+# Enable flashing
+enabled = true
+
+
+
+[default.reset]
+# Wether or not the target should be reset
+enabled = false
+
+# Halt after reset
+halt_afterwards = false
+
+
+
+[default.rtt]
+enabled = true
+
+
+
+[default.general]
+# Define trhe chip
+chip = "LPC55S69JBD100"
+
+# Do not connect under reset -> It bugs
+connect_under_reset = false
+
+# Verbose output
+log_level = "TRACE"
+
+
+
+[default.gdb]
+# Enable the GDB server
+enabled = true
+
+# Set the TCP port.
+gdb_connection_string = "127.0.0.1:4444"
