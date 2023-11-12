@@ -50,6 +50,8 @@ fn main_() -> ! {
     defmt::info!("Created RGB LED pins");
 
 
+    coprocessor( hal.powerquad );
+
 
     // Configure this set of frequencies and repeats.
     let sequence = [
@@ -98,6 +100,52 @@ fn main_() -> ! {
     }
 }
 
+
+#[inline(never)]
+fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
+    use lpc5500::powerquad::coprocessor::{
+        Coprocessor, Operation, traits::*,
+    };
+
+    // Initialize the PowerQuad.
+    let (cp0, cp1) = pq.init();
+
+    let reset  = unsafe { core::ptr::read_volatile((0x50000000 + 0x108) as *const u32) };
+    let enable = unsafe { core::ptr::read_volatile((0x50000000 + 0x208) as *const u32) };
+
+    defmt::info!("PQ unreset: {} | PQ enabled: {}", ((reset >> 19) & 1) == 0, ((enable >> 19) & 1) == 1);
+
+    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
+
+    // Select the divisors.
+    let div0 = 2.0;
+    let div1 = 3.0;
+
+    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
+
+    defmt::info!("Going into the unknown");
+
+    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
+
+    // Execute a function and read the value.
+    let op1 = cp1.exp( div1 );
+    let op0 = cp0.exp( div0 );
+
+    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
+
+    defmt::info!("The call of the void did not explode");
+
+    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
+
+    // Finish both instructions.
+    let (res1, cp1) = op1.finish();
+    let (res0, cp0) = op0.finish();
+
+    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
+
+    defmt::info!("exp({}) = {}", div0, res0);
+    defmt::info!("exp({}) = {}", div1, res1);
+}
 
 
 fn accelcfg() -> lpc5500::system::user::Acceleration {
