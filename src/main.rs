@@ -8,13 +8,14 @@
 use defmt_rtt as _;
 //use lpc5500 as _;
 
-use lpc55_hal as hal;
+use lpc55_hal as _;
 
 
 
 #[cortex_m_rt::entry]
 fn main_() -> ! {
     use lpc5500::gpio::Output;
+    use lpc5500::security::random;
 
     defmt::error!("Hello from main");
 
@@ -49,6 +50,7 @@ fn main_() -> ! {
 
     defmt::info!("Created RGB LED pins");
 
+    defmt::info!("Testing random numbers {:X} | {:X} | {:X}", random(), random(), random());
 
     coprocessor( hal.powerquad );
 
@@ -103,12 +105,10 @@ fn main_() -> ! {
 
 #[inline(never)]
 fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
-    use lpc5500::powerquad::coprocessor::{
-        Coprocessor, Operation, traits::*,
-    };
+    use lpc5500::powerquad::coprocessor::traits::*;
 
     // Initialize the PowerQuad.
-    let (cp0, cp1) = pq.init();
+    let (mut cp0, mut cp1) = pq.init();
 
     let reset  = unsafe { core::ptr::read_volatile((0x50000000 + 0x108) as *const u32) };
     let enable = unsafe { core::ptr::read_volatile((0x50000000 + 0x208) as *const u32) };
@@ -138,8 +138,8 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
     core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
 
     // Finish both instructions.
-    let (res1, cp1) = op1.finish();
-    let (res0, cp0) = op0.finish();
+    let res1 = op1.finish();
+    let res0 = op0.finish();
 
     core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
 

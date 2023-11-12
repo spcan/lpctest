@@ -19,7 +19,18 @@ panic = "abort"
 lto = true
 debug = true
 codegen-units = 1
-#opt-level = "z"
+opt-level = "z"
+
+[profile.release.package.lpc5500]
+debug = true
+codegen-units = 1
+opt-level = "z"
+
+[profile.release.package.cortex-m-rt]
+debug = true
+codegen-units = 1
+opt-level = "z"
+
 
 
 
