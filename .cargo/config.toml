@@ -17,3 +17,6 @@ runner = "probe-rs run --chip LPC55S69JBD100 --probe 1fc9:0132 --protocol swd"
 
 [build]
 target = "thumbv8m.main-none-eabihf"
+
+[env]
+DEFMT_LOG = "debug"

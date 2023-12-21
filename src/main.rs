@@ -3,7 +3,7 @@
 #![no_std]
 #![no_main]
 
-
+#![feature(generic_const_exprs)]
 
 use defmt_rtt as _;
 //use lpc5500 as _;
@@ -31,7 +31,10 @@ fn main_() -> ! {
     defmt::debug!("Device is using {} as main clock [{} Hz]", source, frequency);
 
     // Configure Flash acceleration.
-    user.flash.acceleration( Some( accelcfg() ) );
+    let cfg = accelcfg();
+    user.flash.acceleration( Some( cfg ) );
+
+    defmt::info!("Using Flash acceleration: {}", cfg);
 
     let fmccr = unsafe { core::ptr::read_volatile( (0x50000000 + 0x400) as *mut u32 ) };
     defmt::info!("FMCCR {:b}", fmccr);
@@ -67,6 +70,8 @@ fn main_() -> ! {
         for (source, delay, reps) in sequence.iter() {
             // Set the frequency of the device.
             user.setclock(*source);
+
+            defmt::info!("Set clock source {}", source);
 
             // Read the MUX values and AHBDIV.
             /*
@@ -105,10 +110,15 @@ fn main_() -> ! {
 
 #[inline(never)]
 fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
-    use lpc5500::powerquad::coprocessor::traits::*;
+    use lpc5500::powerquad::{
+        coprocessor::traits::*,
+        engine::matrix::{
+            MatrixTrait, TypedMatrix,
+        },
+    };
 
     // Initialize the PowerQuad.
-    let (mut cp0, mut cp1) = pq.init();
+    let (mut cp0, mut cp1, mut engine) = pq.init();
 
     let reset  = unsafe { core::ptr::read_volatile((0x50000000 + 0x108) as *const u32) };
     let enable = unsafe { core::ptr::read_volatile((0x50000000 + 0x208) as *const u32) };
@@ -145,6 +155,40 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
 
     defmt::info!("exp({}) = {}", div0, res0);
     defmt::info!("exp({}) = {}", div1, res1);
+
+    // Create a matrix.
+    let mut eye: TypedMatrix<5, 5> = TypedMatrix::eye();
+
+    defmt::info!("Created an identity Matrix:\n{}", eye);
+
+    // Modify the 3,4 element
+    eye[3][4] = 5.0;
+    eye[0][2] = 5.0;
+    eye[1][2] = 5.0;
+    eye[2][2] = 5.0;
+    eye[3][2] = 5.0;
+
+    defmt::info!("Modified the identity Matrix:\n{}", eye);
+
+    // Create three matrices.
+    let a: TypedMatrix<5, 5> = TypedMatrix::zeroes();
+    let b: TypedMatrix<5, 5> = TypedMatrix::eye();
+    let mut c: TypedMatrix<5, 5> = TypedMatrix::zeroes();
+
+    // Add A + B = C.
+    defmt::info!("Launching matrix addition.");
+    let _ = engine.add(&a, &b, &mut c);
+
+    // Launch another operation to see if this conflicts.
+    let r = cp0.exp(7.0);
+
+    defmt::info!("Waiting for amtrix addition to finish");
+    let r7 = r.finish();
+    engine.finish();
+    defmt::info!("Matrix addition is done.");
+
+    defmt::info!("exp(7) = {}", r7);
+    defmt::info!("A + B = {}", c);
 }
 
 

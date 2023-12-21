@@ -21,13 +21,10 @@
             "probe": "1fc9:0132",
             "speed": 1000,
             "connectUnderReset": false,
-            "chip": "LPC55S69JBD100",
+            "wireProtocol": "Swd",
 
             // Runtime configuration.
-            "runtimeExecutable": "probe-rs-fix",
-            "runtimeArgs": [
-                "debug",
-            ],
+            "runtimeExecutable": "probe-rs",
 
             // Flashing configuration.
             "flashingConfig": {
@@ -35,61 +32,39 @@
                 "haltAfterReset": false
             },
 
-            "rttEnabled": true,
-
-            // Core configuration.
-            "coreConfigs": [
-                {
-                    "coreIndex": 0,
-                    "programBinary": "${workspaceFolder}/target/thumbv8m.main-none-eabihf/release/lpctest",
-                    "chip": "LPC55S69JBD100",
-                    "svdFile": "${env:HOME}/.local/share/si4p/svd/nxp/lpc5500/LPC55S69.svd",
-                },
-            ],
-
-            // Log configuration.
-            "consoleLogLevel": "Info",
-        },
-
-        // Attach configuration.
-        {
-            // Type and request type.
-            "type": "probe-rs-debug",
-            "request": "attach",
-
-            // Display name.
-            "name": "Attach",
-
-            // Working directory.
-            "cwd": "${workspaceFolder}",
-
-            // Probe configuration.
-            "probe": "1fc9:0132",
-            "speed": 1000,
+            // Chip and core configuration.
             "chip": "LPC55S69JBD100",
-
-            // Flashing configuration.
-            "flashingConfig": {
-            },
-
-            // Runtime configuration.
-            "runtimeExecutable": "probe-rs-debugger",
-            "runtimeArgs": [
-                "debug",
-            ],
-
-            // Core configuration.
             "coreConfigs": [
                 {
+                    // Core index.
                     "coreIndex": 0,
+
+                    // The program to load.
                     "programBinary": "${workspaceFolder}/target/thumbv8m.main-none-eabihf/release/lpctest",
-                    "chip": "LPC55S69JBD100",
-                    "svdFile": "${env:HOME}/.local/share/si4p/svd/nxp/lpc5500/LPC55S69.svd",
+
+                    // The SVD file of the chip.
+                    "svdFile": "C:/Users/agrc1/Documents/projects/embed/lpctest/LPC55S69.svd",
+
+                    // Enable RTT for defmt.
+                    "rttEnabled": true,
+                    "rttChannelFormats": [
+                        {
+                            // Channel number.
+                            "channelNumber": 0,
+
+                            // DEFMT type.
+                            "dataFormat": "Defmt",
+                        }
+                    ],
                 },
             ],
 
             // Log configuration.
-            "consoleLogLevel": "Info",
-        }
+            "consoleLogLevel": "Debug",
+
+            "env": {
+                "DEFMT_LOG": "debug"
+            }
+        },
     ]
 }

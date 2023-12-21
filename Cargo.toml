@@ -38,6 +38,7 @@ opt-level = "z"
 
 [dependencies.lpc5500]
 path = "../lpc5500"
+features = ["defmt", "lpc5526jdb100"]
 
 #[dependencies.micro]
 #git = "https://github.com/micro-rust/micro.git"
