@@ -26,10 +26,10 @@ debug = true
 codegen-units = 1
 opt-level = "z"
 
-[profile.release.package.cortex-m-rt]
-debug = true
-codegen-units = 1
-opt-level = "z"
+#[profile.release.package.cortex-m-rt]
+#debug = true
+#codegen-units = 1
+#opt-level = "z"
 
 
 
@@ -38,7 +38,7 @@ opt-level = "z"
 
 [dependencies.lpc5500]
 path = "../lpc5500"
-features = ["defmt", "lpc5526jdb100"]
+features = ["defmt", "lpc55s69jbd100"]
 
 #[dependencies.micro]
 #git = "https://github.com/micro-rust/micro.git"
@@ -54,11 +54,11 @@ version = "0.4"
 version = "*"
 features = ["critical-section-single-core"]
 
-[dependencies.cortex-m-rt]
-version = "0.6.15"
+#[dependencies.cortex-m-rt]
+#version = "0.6.15"
 
-[dependencies.lpc55-hal]
-version = "0.3.0"
+#[dependencies.lpc55-hal]
+#version = "0.3.0"
 
 [dependencies.embedded-hal]
 version = "0.2.7"

@@ -7,27 +7,28 @@
 
 use defmt_rtt as _;
 //use lpc5500 as _;
-
-use lpc55_hal as _;
-
+use cortex_m as _;
 
 
-#[cortex_m_rt::entry]
-fn main_() -> ! {
+
+lpc5500::entry!(main);
+
+#[inline(never)]
+fn main(hal: lpc5500::Peripherals) -> ! {
     use lpc5500::gpio::Output;
     use lpc5500::security::random;
 
     defmt::error!("Hello from main");
-
-    // Initialize the device.
-    let hal = unsafe { lpc5500::init() };
 
     // Get the user interface.
     let mut user = hal.user;
 
     // Get the clock state.
     let (frequency, source) = user.main.getclock();
+    defmt::debug!("Device is using {} as main clock [{} Hz]", source, frequency);
 
+    user.setclock(lpc5500::system::user::ClockSource::FRO1Mhz);
+    let (frequency, source) = user.main.getclock();
     defmt::debug!("Device is using {} as main clock [{} Hz]", source, frequency);
 
     // Configure Flash acceleration.
@@ -56,6 +57,8 @@ fn main_() -> ! {
     defmt::info!("Testing random numbers {:X} | {:X} | {:X}", random(), random(), random());
 
     coprocessor( hal.powerquad );
+
+    defmt::info!("Coprocessor ended");
 
 
     // Configure this set of frequencies and repeats.
@@ -143,8 +146,6 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
 
     core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
 
-    defmt::info!("The call of the void did not explode");
-
     core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
 
     // Finish both instructions.
@@ -159,8 +160,6 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
     // Create a matrix.
     let mut eye: TypedMatrix<5, 5> = TypedMatrix::eye();
 
-    defmt::info!("Created an identity Matrix:\n{}", eye);
-
     // Modify the 3,4 element
     eye[3][4] = 5.0;
     eye[0][2] = 5.0;
@@ -170,6 +169,7 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
 
     defmt::info!("Modified the identity Matrix:\n{}", eye);
 
+
     // Create three matrices.
     let a: TypedMatrix<5, 5> = TypedMatrix::zeroes();
     let b: TypedMatrix<5, 5> = TypedMatrix::eye();
@@ -177,14 +177,15 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
 
     // Add A + B = C.
     defmt::info!("Launching matrix addition.");
-    let _ = engine.add(&a, &b, &mut c);
+    //let _ = engine.add(&a, &b, &mut c);
+
 
     // Launch another operation to see if this conflicts.
     let r = cp0.exp(7.0);
 
     defmt::info!("Waiting for amtrix addition to finish");
     let r7 = r.finish();
-    engine.finish();
+    //engine.finish();
     defmt::info!("Matrix addition is done.");
 
     defmt::info!("exp(7) = {}", r7);

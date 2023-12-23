@@ -43,7 +43,7 @@
                     "programBinary": "${workspaceFolder}/target/thumbv8m.main-none-eabihf/release/lpctest",
 
                     // The SVD file of the chip.
-                    "svdFile": "C:/Users/agrc1/Documents/projects/embed/lpctest/LPC55S69.svd",
+                    "svdFile": "/home/ags/storage/projects/embed/lpctest/LPC55S69.svd",
 
                     // Enable RTT for defmt.
                     "rttEnabled": true,
