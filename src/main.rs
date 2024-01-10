@@ -32,27 +32,20 @@ fn main(hal: lpc5500::Peripherals) -> ! {
     defmt::debug!("Device is using {} as main clock [{} Hz]", source, frequency);
 
     // Configure Flash acceleration.
-    let cfg = accelcfg();
-    user.flash.acceleration( Some( cfg ) );
-
-    defmt::info!("Using Flash acceleration: {}", cfg);
-
-    let fmccr = unsafe { core::ptr::read_volatile( (0x50000000 + 0x400) as *mut u32 ) };
-    defmt::info!("FMCCR {:b}", fmccr);
+    user.flash.acceleration( Some( accelcfg() ) );
 
     // Get the Port 1 pins.
     let pins = hal.pins.PORT1;
 
-    // Blue LED is PIO1_6.
-    let mut blue = Output::new( pins.PIN6 );
-
-    // Green LED is PIO1_7.
-    let mut green = Output::new( pins.PIN7.anon() );
-
-    // Red LED is PIO1_4.
-    let mut red = Output::new( pins.PIN4 );
-
-    defmt::info!("Created RGB LED pins");
+    // Collect the pins in an array.
+    let mut leds = [
+        // Red LED is PIO1_4.
+        Output::new( pins.PIN4.anon() ),
+        // Blue LED is PIO1_6.
+        Output::new( pins.PIN6.anon() ),
+        // Green LED is PIO1_7.
+        Output::new( pins.PIN7.anon() ),
+    ];
 
     defmt::info!("Testing random numbers {:X} | {:X} | {:X}", random(), random(), random());
 
@@ -69,42 +62,22 @@ fn main(hal: lpc5500::Peripherals) -> ! {
     ];
 
     loop {
-        // Loop over all states.
+        // Loop over all clock states.
         for (source, delay, reps) in sequence.iter() {
             // Set the frequency of the device.
             user.setclock(*source);
 
             defmt::info!("Set clock source {}", source);
 
-            // Read the MUX values and AHBDIV.
-            /*
-            let a = unsafe { core::ptr::read_volatile( (0x50000000 + 0x280) as *const u32 ) };
-            let b = unsafe { core::ptr::read_volatile( (0x50000000 + 0x284) as *const u32 ) };
-            let d = unsafe { core::ptr::read_volatile( (0x50000000 + 0x380) as *const u32 ) };
-
-            defmt::info!("Clock {} > MAINSELA : {} | MAINSELB : {} [divisor {}]", *source, a, b, d & 0xFF);
-            */
-
-            // Number of repetitions.
             for _ in 0..*reps {
-                // Toggle the lights.
-                for _ in 0..*delay {
-                    unsafe { core::arch::asm!("nop", options(nostack, nomem)); }
+                // Loop over the LEDs.
+                for led in &mut leds {
+                    // Wait the delay given.
+                    for _ in 0..*delay { unsafe { core::arch::asm!("nop", options(nomem, nostack)); } }
+
+                    // Toggle the LED.
+                    led.toggle();
                 }
-        
-                blue.toggle();
-        
-                for _ in 0..*delay {
-                    unsafe { core::arch::asm!("nop", options(nostack, nomem)); }
-                }
-        
-                green.toggle();
-        
-                for _ in 0..*delay {
-                    unsafe { core::arch::asm!("nop", options(nostack, nomem)); }
-                }
-        
-                red.toggle();
             }
         }
     }
@@ -123,36 +96,17 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
     // Initialize the PowerQuad.
     let (mut cp0, mut cp1, mut engine) = pq.init();
 
-    let reset  = unsafe { core::ptr::read_volatile((0x50000000 + 0x108) as *const u32) };
-    let enable = unsafe { core::ptr::read_volatile((0x50000000 + 0x208) as *const u32) };
-
-    defmt::info!("PQ unreset: {} | PQ enabled: {}", ((reset >> 19) & 1) == 0, ((enable >> 19) & 1) == 1);
-
-    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
-
     // Select the divisors.
     let div0 = 2.0;
     let div1 = 3.0;
-
-    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
-
-    defmt::info!("Going into the unknown");
-
-    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
 
     // Execute a function and read the value.
     let op1 = cp1.exp( div1 );
     let op0 = cp0.exp( div0 );
 
-    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
-
-    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
-
     // Finish both instructions.
     let res1 = op1.finish();
     let res0 = op0.finish();
-
-    core::sync::atomic::compiler_fence( core::sync::atomic::Ordering::SeqCst );
 
     defmt::info!("exp({}) = {}", div0, res0);
     defmt::info!("exp({}) = {}", div1, res1);
@@ -193,7 +147,7 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
 }
 
 
-fn accelcfg() -> lpc5500::system::user::Acceleration {
+const fn accelcfg() -> lpc5500::system::user::Acceleration {
     use lpc5500::system::user::{
         Acceleration, BufferUsage,
     };
