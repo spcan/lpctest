@@ -19,12 +19,7 @@ panic = "abort"
 lto = true
 debug = true
 codegen-units = 1
-opt-level = "z"
-
-[profile.release.package.lpc5500]
-debug = true
-codegen-units = 1
-opt-level = "z"
+opt-level = 2
 
 #[profile.release.package.cortex-m-rt]
 #debug = true
@@ -51,7 +46,7 @@ version = "0.3"
 version = "0.4"
 
 [dependencies.cortex-m]
-version = "*"
+version = "0.7.7"
 features = ["critical-section-single-core"]
 
 #[dependencies.cortex-m-rt]

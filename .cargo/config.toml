@@ -7,13 +7,15 @@ rustflags = [
 
     # Code optimizations
     #"-Z", "trap-unreachable=no",
-    "-C", "inline-threshold=5",
-    "-C", "no-vectorize-loops",
+    #"-C", "inline-threshold=5",
+    #"-C", "no-vectorize-loops",
+
+    # Fixes LLVM bug on function outlining
+    "-C", "llvm-args=--enable-machine-outliner=never",
 ]
 
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
-# replace STM32F429ZITx with your chip as listed in `probe-run --list-chips`
-runner = "probe-rs run --chip LPC55S69JBD100 --probe 1fc9:0132 --protocol swd"
+runner = "probe-rs run --chip LPC55S69JBD100 --probe 1fc9:0132 --protocol swd --no-location"
 
 [build]
 target = "thumbv8m.main-none-eabihf"
