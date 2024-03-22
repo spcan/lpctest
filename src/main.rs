@@ -44,6 +44,40 @@ fn main(hal: lpc5500::Peripherals) -> ! {
 
     defmt::info!("Coprocessor ended");
 
+    defmt::info!("Reading the first OS timer event");
+
+    let mut ostime = hal.ostime;
+    let now = ostime.read();
+
+    defmt::warn!("Configuring micro tick");
+
+    let mut utick = hal.utick;
+    utick.init();
+    user.setclock(lpc5500::system::user::ClockSource::FRO96Mhz);
+
+    defmt::info!("Micro tick configured, waiting for 5 ms...");
+
+    utick.start(5_000, false);
+
+    while unsafe { lpc5500::timers::utick::handler::TRIGGERED != 7 } {
+        defmt::info!("Still waiting...");
+
+        // Wait until not there.
+        for _ in 0..10000 {
+            unsafe { core::arch::asm!("nop", options(nomem, nostack)); }
+        }
+    }
+
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+
+    defmt::info!("UTick trigered!!!");
+
+    defmt::info!("Reading OS timer again");
+
+    let later = ostime.read();
+
+    defmt::info!("OS timer reads: {=u64} - {=u64}", now, later);
+
 
     // Configure this set of frequencies and repeats.
     let sequence = [
@@ -53,6 +87,8 @@ fn main(hal: lpc5500::Peripherals) -> ! {
     ];
 
     loop {
+        defmt::info!("OS Timer: {=u64}", ostime.read());
+
         // Loop over all clock states.
         for (source, delay, reps) in sequence.iter() {
             // Set the frequency of the device.
@@ -134,7 +170,7 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
 
     // Add A + B = C.
     defmt::info!("Launching matrix addition.");
-    let _ = engine.add(&a, &b, &mut c);
+    //let _ = engine.add(&a, &b, &mut c);
 
     unsafe { core::arch::asm!("wfe", options(nomem, nostack)) };
 
@@ -144,11 +180,11 @@ fn coprocessor(pq: lpc5500::powerquad::PowerQuad) {
 
     defmt::info!("Waiting for matrix addition to finish");
     let r7 = r.finish();
-    engine.finish();
-    //defmt::info!("Matrix addition is done.");
+    //engine.finish();
+    defmt::info!("Matrix addition is done.");
 
-    //defmt::info!("exp(7) = {}", r7);
-    //defmt::info!("A + B = {}", c);
+    defmt::info!("exp(7) = {}", r7);
+    defmt::info!("A + B = {}", c);
 }
 
 
